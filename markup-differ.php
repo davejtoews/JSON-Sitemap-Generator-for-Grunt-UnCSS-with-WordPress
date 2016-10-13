@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Grunt Sitemap Generator
- * Plugin URI: http://www.github.com/lgladdy
- * Description: Generate a JSON list of every page on a site so it can be used with grunt and uncss. Create a folder in /wp-content called mu-plugins, and drop this code into that folder, as grunt-sitemap.php
- * Author: Liam Gladdy /\ Will Rees
- * Author URI: http://gladdy.co.uk
- * Version: 1.1
+ * Plugin Name: Plugin Markup Differ
+ * Plugin URI: https://github.com/davejtoews/Wordpress-Plugin-Markup-Differ
+ * Description: Programatically turn plugins on and off to allow remote server to diff markup. Sitemap code forked from https://github.com/phoenixMag00/JSON-Sitemap-Generator-for-Grunt-UnCSS-with-WordPress
+ * Author: Dave J Toews
+ * Author URI: http://davejtoews.com
+ * Version: 0.1
  */
  
 add_action('template_redirect','show_sitemap');
