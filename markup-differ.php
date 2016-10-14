@@ -8,102 +8,74 @@
  * Version: 0.1
  */
  
-add_action('template_redirect','show_sitemap');
+require( plugin_dir_path( __FILE__ ) . 'sitemap.php');
+require( plugin_dir_path( __FILE__ ) . 'ajax-callbacks.php');
 
-function show_sitemap() {
-  if (isset($_GET['show_sitemap'])) {
-    
-    //set up an array for all the URLs
-    
-    	$urls = array();
-    	
-	//Homepage
-	
-		$urls[] = get_site_url();
-	
-	//get all the pages, posts (including CPTs)
-	
-		$the_query = new WP_Query(array('post_type' => 'any', 'posts_per_page' => '-1', 'post_status' => 'publish'));
-    
-		while ($the_query->have_posts()) {
-		 
-		  $the_query->the_post();
+add_action( 'admin_menu', 'markup_differ_admin_menu' );
 
-		  	$urls[] = get_permalink();
-	  
-		}
-		
-	//Authors
-
-		 $authors = get_users();
-		 
-		 foreach ($authors as $author) {
-		
-			 $urls[] = get_author_posts_url( $author->ID );
-			 
-		 }
-		  
-	 //Every term imaginable, even the empty ones (categories, custom taxonomies, tags, etc.)
-	
-		$args = array(
-  			'public'   => true,
-  		);
-  			
-  			$taxonomies=get_taxonomies($args,'names'); 
-
-				$args = array( 'hide_empty=0' );
-
-					$terms = get_terms($taxonomies, $args);
-
-						foreach ($terms as $term) {
-			 
-							$urls[] = get_term_link( $term );    	
-						}
-				    
-	//Getting a list of Archive URLs seems like it should be easier...probably missing something on the Codex, but this works.			    	    
-				    
-		$args = array(
-			'type'            => 'monthly',
-			'format'          => 'custom', 
-			'before'          => '',
-			'after'           => '',
-			'show_post_count' => false,
-			'echo'            => 0
-		); 
-					    
-			$archive_links_raw = wp_get_archives($args);
-		
-			$archive_links_pattern = "/(?i)\b((?:https?:\/\/|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))/";	
-				
-				preg_match_all($archive_links_pattern, $archive_links_raw, $cleaned_archive_links);
-					
-					$cleaned_archive_links = $cleaned_archive_links[1];
-					
-						foreach ($cleaned_archive_links as $cleaned_archive_link) {
-						
-							$urls[] = $cleaned_archive_link;
-						
-						}
-						
-	//Add in a search result page for '.' 
-	
-		$main_url = get_site_url();
-		
-			$urls[] = $main_url . '/?s=.';
-			
-	//Force a search with no results
-	
-		$urls[] = $main_url . '/?s=asdfasdfasdfasdf';
-	
-	//Force a 404 page
-	
-		$urls[] = $main_url . '/asdfasdfasdfasdf';
-
-//Return all of the urls captured above and encode to json for UnCSS
-
-	die(json_encode($urls));
-  
-  }
-
+function printPre($object) {
+	echo "<pre>";
+	print_r($object);
+	echo "</pre>";
 }
+
+function markup_differ_admin_menu() {
+	add_management_page( 'Markup Differ', 'Markup Differ', 'manage_options', 'markup_differ', 'markup_differ_admin_page' ); 
+}
+
+add_action('admin_enqueue_scripts', 'enqueue_ajax_plugin_functions');
+
+function enqueue_ajax_plugin_functions() {
+	wp_enqueue_script('ajax-plugin-functions', plugin_dir_url(__FILE__) . 'ajax.js');
+
+	wp_localize_script( 'ajax-plugin-functions', 'diffAjax', array(
+		'ajaxurl'          	=> admin_url( 'admin-ajax.php' ),
+		'deactivateNonce' 	=> wp_create_nonce( 'deactivatePluginNonce' ),
+		'rootUrl'			=> site_url(),
+		'sitemapUrl'		=> site_url() . '/?show_sitemap'
+		)
+	);
+}
+
+
+function markup_differ_admin_page() {
+	$plugins = get_option('active_plugins');
+	$plugins = array_filter($plugins, 'is_plugin_not_current_plugin');
+
+	printPre($plugins); 
+	?>
+
+	<!--<input type="text" id="pluginName" name="pluginName">
+	<input type="button" onclick="deactivatePlugin();" value="Deactivate">-->
+
+	<form>
+		<label for="serverUrl">Server Url</label>
+		<input type="text" id="serverUrl" name="serverUrl">
+		<br>
+		<label for="muPath">Markup Path</label>
+		<input type="text" id="muPath" name="muPath">
+		<br>
+		<label for="branch">Branch</label>
+		<input type="text" id="branch" name="branch">
+		<br>
+		<input type="button" onclick="connectToDiffServer();" value="Connect">	
+		<input type="button" onclick="requestScrape()" value="Scrape">
+		<input type="button" onclick="requestBranch()" value="Branch">
+		<input type="button" onclick="requestCommit()" value="Commit">
+	</form>
+
+	<textarea name="serverLog" id="serverLog" cols="60" rows="20"></textarea>
+
+
+
+<?php }
+
+function is_plugin_not_current_plugin($plugin) {
+	if($plugin == basename( __DIR__ ) . '/' . basename(__FILE__)) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 ?>
