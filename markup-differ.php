@@ -31,22 +31,25 @@ function enqueue_ajax_plugin_functions() {
 	wp_localize_script( 'ajax-plugin-functions', 'diffAjax', array(
 		'ajaxurl'          	=> admin_url( 'admin-ajax.php' ),
 		'deactivateNonce' 	=> wp_create_nonce( 'deactivatePluginNonce' ),
+		'activateNonce' 	=> wp_create_nonce( 'activatePluginNonce' ),
 		'rootUrl'			=> site_url(),
-		'sitemapUrl'		=> site_url() . '/?show_sitemap'
+		'sitemapUrl'		=> site_url() . '/?show_sitemap',
+		'pluginList'		=> get_other_plugin_list()
 		)
 	);
 }
 
 
 function markup_differ_admin_page() {
-	$plugins = get_option('active_plugins');
-	$plugins = array_filter($plugins, 'is_plugin_not_current_plugin');
+	$plugins = get_other_plugin_list();
 
 	printPre($plugins); 
 	?>
 
-	<!--<input type="text" id="pluginName" name="pluginName">
-	<input type="button" onclick="deactivatePlugin();" value="Deactivate">-->
+	<input type="text" id="pluginName" name="pluginName">
+	<br>
+	<input type="button" onclick="deactivateHandler();" value="Deactivate">
+	<input type="button" onclick="activateHandler();" value="Activate">
 
 	<form>
 		<label for="serverUrl">Server Url</label>
@@ -60,8 +63,10 @@ function markup_differ_admin_page() {
 		<br>
 		<input type="button" onclick="connectToDiffServer();" value="Connect">	
 		<input type="button" onclick="requestScrape()" value="Scrape">
-		<input type="button" onclick="requestBranch()" value="Branch">
+		<input type="button" onclick="branchHandler()" value="Branch">
 		<input type="button" onclick="requestCommit()" value="Commit">
+		<br>
+		<input type="button" onclick="autoDiff()" value="autoDiff">
 	</form>
 
 	<textarea name="serverLog" id="serverLog" cols="60" rows="20"></textarea>
@@ -69,6 +74,11 @@ function markup_differ_admin_page() {
 
 
 <?php }
+
+function get_other_plugin_list() {
+	$plugins = get_option('active_plugins');
+	return array_filter($plugins, 'is_plugin_not_current_plugin');	
+}
 
 function is_plugin_not_current_plugin($plugin) {
 	if($plugin == basename( __DIR__ ) . '/' . basename(__FILE__)) {

@@ -1,6 +1,5 @@
-function deactivatePlugin() {
+function deactivatePlugin(plugin) {
 	(function($) {
-		var plugin = $('#pluginName').val();
 		var data = {
 			'action'			: 'deactivate_plugin',
 			'plugin'			: plugin,
@@ -12,9 +11,15 @@ function deactivatePlugin() {
 	})(jQuery);
 }
 
-function activatePlugin() {
+function deactivateHandler() {
 	(function($) {
 		var plugin = $('#pluginName').val();
+		deactivatePlugin(plugin);
+	})(jQuery);
+}
+
+function activatePlugin(plugin) {
+	(function($) {
 		var data = {
 			'action'			: 'activate_plugin',
 			'plugin'			: plugin,
@@ -25,6 +30,14 @@ function activatePlugin() {
 		});
 	})(jQuery);
 }
+
+function activateHandler() {
+	(function($) {
+		var plugin = $('#pluginName').val();
+		activatePlugin(plugin);
+	})(jQuery);
+}
+
 
 function connectToDiffServer() {
 	(function($) {
@@ -57,20 +70,26 @@ function requestScrape() {
 	})(jQuery);
 }
 
-function requestBranch() {
+function requestBranch(branch) {
 	(function($) {
 		var server = $('#serverUrl').val() + '/checkout';
-		var branch = $('#branch').val();
 		var path = $('#muPath').val();
 		var data = {
 			'path' : path,
 			'branch' : branch
 		}
-		serverLog("Branching...");
+		serverLog("Creating Branch: " + branch);
 		$.post(server, data, function(response) {
 			console.log(response);
 			serverLog(response);
 		});
+	})(jQuery);
+}
+
+function activateHandler() {
+	(function($) {
+		var branch = $('#branch').val();
+		requestBranch(branch);
 	})(jQuery);
 }
 
@@ -83,15 +102,74 @@ function requestCommit() {
 		}
 		serverLog("Comitting...");
 		$.post(server, data, function(response) {
-			console.log(response);
-			serverLog(response);
+			if(!response.error) {
+				serverLog(response);
+			} else {
+				serverLog("Not Committed");
+			}
+			
 		});		
 	})(jQuery);
 }
 
-function serverLog(newItem) {
+function autoDiff() {
+	var plugins = getPluginList();
+
+	var diffQueue = [];
+	diffQueue = addToDiffQueue(diffQueue, 'master');
+	diffQueue = addToDiffQueue(diffQueue, 'control');
+
+	plugins.forEach(function(plugin) {
+		var branch = getBranchName(plugin);
+		diffQueue = addToDiffQueue(diffQueue, branch, plugin);
+	});
+
+	console.log(diffQueue);
+}
+
+function addToDiffQueue(queue, branch, plugin=false) {
+	queue.push({
+		'branch': branch,
+		'plugin': plugin
+	});
+
+	return queue;
+}
+
+function getBranchName(pluginPath) {
+	pathArray = pluginPath.split("/");
+
+	return pathArray[0];
+}
+
+function serverLog(newItem, newLine = "\n") {
 	(function($) {
-		var log = $('#serverLog').val() + newItem + "\n";
+		var log = $('#serverLog').val() + newItem + newLine;
 		$('#serverLog').val(log);
 	})(jQuery);
 }
+
+function getPluginList() {
+	var plugins = [];
+
+	for (var key in diffAjax.pluginList) {
+		plugins.push(diffAjax.pluginList[key]);
+	}
+
+	return plugins;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
