@@ -28,6 +28,7 @@ function activatePlugin(plugin, queue = false) {
 			'plugin'			: plugin,
 			'activateNonce'		: diffAjax.activateNonce
 		}
+		console.log('activating');
 		$.post(diffAjax.ajaxurl, data, function(response) {
 			console.log(response);
 			if(queue) {
@@ -166,6 +167,9 @@ function processCommitQueue(queue) {
 					} else {
 						requestScrape(queue);
 					}
+					break;
+				case "deactivated": 
+					requestScrape(queue);
 					break;
 				case "scraped": 
 					requestCommit(queue);
