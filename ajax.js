@@ -1,4 +1,4 @@
-function deactivatePlugin(plugin) {
+function deactivatePlugin(plugin, queue = false) {
 	(function($) {
 		var data = {
 			'action'			: 'deactivate_plugin',
@@ -7,6 +7,9 @@ function deactivatePlugin(plugin) {
 		}
 		$.post(diffAjax.ajaxurl, data, function(response) {
 			console.log(response);
+			if(queue) {
+				updateQueue(queue, 'deactivated');
+			}
 		});
 	})(jQuery);
 }
@@ -18,7 +21,7 @@ function deactivateHandler() {
 	})(jQuery);
 }
 
-function activatePlugin(plugin) {
+function activatePlugin(plugin, queue = false) {
 	(function($) {
 		var data = {
 			'action'			: 'activate_plugin',
@@ -27,6 +30,9 @@ function activatePlugin(plugin) {
 		}
 		$.post(diffAjax.ajaxurl, data, function(response) {
 			console.log(response);
+			if(queue) {
+				updateQueue(queue, 'activated');
+			}
 		});
 	})(jQuery);
 }
@@ -55,7 +61,7 @@ function connectToDiffServer() {
 	})(jQuery);
 }
 
-function requestScrape() {
+function requestScrape(queue = false) {
 	(function($) {
 		var server = $('#serverUrl').val() + '/scrape';
 		var data = {
@@ -66,11 +72,14 @@ function requestScrape() {
 		$.post(server, data, function(response) {
 			console.log(response);
 			serverLog("Scraped.")
+			if(queue) {
+				updateQueue(queue, 'scraped');
+			}
 		});
 	})(jQuery);
 }
 
-function requestBranch(branch) {
+function requestBranch(branch, queue = false) {
 	(function($) {
 		var server = $('#serverUrl').val() + '/checkout';
 		var path = $('#muPath').val();
@@ -82,18 +91,21 @@ function requestBranch(branch) {
 		$.post(server, data, function(response) {
 			console.log(response);
 			serverLog(response);
+			if(queue) {
+				updateQueue(queue, 'branched');
+			}
 		});
 	})(jQuery);
 }
 
-function activateHandler() {
+function branchHandler() {
 	(function($) {
 		var branch = $('#branch').val();
 		requestBranch(branch);
 	})(jQuery);
 }
 
-function requestCommit() {
+function requestCommit(queue = false ) {
 	(function($) {
 		var server = $('#serverUrl').val() + '/commit';
 		var path = $('#muPath').val();
@@ -107,33 +119,80 @@ function requestCommit() {
 			} else {
 				serverLog("Not Committed");
 			}
+			if(queue) {
+				updateQueue(queue, 'committed');
+			}
 			
 		});		
 	})(jQuery);
 }
 
-function autoDiff() {
+function autoCommit() {
 	var plugins = getPluginList();
 
-	var diffQueue = [];
-	diffQueue = addToDiffQueue(diffQueue, 'master');
-	diffQueue = addToDiffQueue(diffQueue, 'control');
+	var queue = [];
+	queue = addToCommitQueue(queue, 'master');
+	queue = addToCommitQueue(queue, 'control');
 
 	plugins.forEach(function(plugin) {
 		var branch = getBranchName(plugin);
-		diffQueue = addToDiffQueue(diffQueue, branch, plugin);
+		queue = addToCommitQueue(queue, branch, plugin);
 	});
-
-	console.log(diffQueue);
+	console.log(queue);
+	processCommitQueue(queue);
 }
 
-function addToDiffQueue(queue, branch, plugin=false) {
+function addToCommitQueue(queue, branch, plugin=false) {
 	queue.push({
 		'branch': branch,
 		'plugin': plugin
 	});
 
 	return queue;
+}
+
+function processCommitQueue(queue) {
+	if(queue.length) {
+		
+		commit = queue[0];
+
+		if (!commit.status) {
+			requestBranch(commit.branch, queue);
+		} else {
+			switch (commit.status) {
+				case "branched":
+					if (commit.plugin) {
+						deactivatePlugin(commit.plugin, queue);
+					} else {
+						requestScrape(queue);
+					}
+					break;
+				case "scraped": 
+					requestCommit(queue);
+					break;
+				case "committed":
+					if (commit.plugin) {
+						activatePlugin(commit.plugin, queue);
+					} else {
+						updateQueue(queue, 'done');
+					}
+					break;
+				case "activated": 
+					updateQueue(queue, 'done')
+					break;
+				case "done":
+					queue.splice(0, 1);
+					processCommitQueue(queue);
+					break;					
+			}
+		}
+	}
+}
+
+function updateQueue(queue, status) {
+	queue[0].status = status;
+	console.log(queue);
+	processCommitQueue(queue);
 }
 
 function getBranchName(pluginPath) {

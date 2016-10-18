@@ -66,7 +66,7 @@ function markup_differ_admin_page() {
 		<input type="button" onclick="branchHandler()" value="Branch">
 		<input type="button" onclick="requestCommit()" value="Commit">
 		<br>
-		<input type="button" onclick="autoDiff()" value="autoDiff">
+		<input type="button" onclick="autoCommit()" value="autoCommit">
 	</form>
 
 	<textarea name="serverLog" id="serverLog" cols="60" rows="20"></textarea>
