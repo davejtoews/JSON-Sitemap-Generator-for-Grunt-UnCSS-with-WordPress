@@ -57,7 +57,12 @@ function connectToDiffServer() {
 		serverLog("Connecting...");
 		$.post(server, data, function(response) {
 			console.log(response);
-			serverLog("Connected.");
+			if (response.muPath) {
+				$('#muPath').val(response.muPath);
+				serverLog("Connected.");
+				$('.enableOnConnect').prop('disabled', false);				
+			}
+
 		});
 	})(jQuery);
 }
@@ -72,7 +77,6 @@ function requestScrape(queue = false) {
 		serverLog("Scraping...");
 		$.post(server, data, function(response) {
 			console.log(response);
-			serverLog("Scraped.")
 			if(queue) {
 				updateQueue(queue, 'scraped');
 			}
@@ -91,7 +95,6 @@ function requestBranch(branch, queue = false) {
 		serverLog("Creating Branch: " + branch);
 		$.post(server, data, function(response) {
 			console.log(response);
-			serverLog(response);
 			if(queue) {
 				updateQueue(queue, 'branched');
 			}
@@ -115,11 +118,7 @@ function requestCommit(queue = false ) {
 		}
 		serverLog("Comitting...");
 		$.post(server, data, function(response) {
-			if(!response.error) {
-				serverLog(response);
-			} else {
-				serverLog("Not Committed");
-			}
+			console.log(response);
 			if(queue) {
 				updateQueue(queue, 'committed');
 			}
@@ -196,6 +195,7 @@ function processCommitQueue(queue) {
 function updateQueue(queue, status) {
 	queue[0].status = status;
 	console.log(queue);
+	serverLog(queue[0].branch + " : " + queue[0].status);
 	processCommitQueue(queue);
 }
 
@@ -209,6 +209,7 @@ function serverLog(newItem, newLine = "\n") {
 	(function($) {
 		var log = $('#serverLog').val() + newItem + newLine;
 		$('#serverLog').val(log);
+		$('#serverLog').scrollTop($('#serverLog')[0].scrollHeight);
 	})(jQuery);
 }
 

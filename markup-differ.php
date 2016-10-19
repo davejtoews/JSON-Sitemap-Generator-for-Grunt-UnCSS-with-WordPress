@@ -51,22 +51,22 @@ function markup_differ_admin_page() {
 	<input type="button" onclick="deactivateHandler();" value="Deactivate">
 	<input type="button" onclick="activateHandler();" value="Activate">
 
-	<form>
+	<form class="mu-diff-form">
 		<label for="serverUrl">Server Url</label>
 		<input type="text" id="serverUrl" name="serverUrl">
 		<br>
 		<label for="muPath">Markup Path</label>
-		<input type="text" id="muPath" name="muPath">
+		<input type="text" id="muPath" name="muPath" disabled>
 		<br>
 		<label for="branch">Branch</label>
 		<input type="text" id="branch" name="branch">
 		<br>
 		<input type="button" onclick="connectToDiffServer();" value="Connect">	
-		<input type="button" onclick="requestScrape()" value="Scrape">
-		<input type="button" onclick="branchHandler()" value="Branch">
-		<input type="button" onclick="requestCommit()" value="Commit">
+		<input class="enableOnConnect" type="button" onclick="requestScrape()" value="Scrape" disabled>
+		<input class="enableOnConnect" type="button" onclick="branchHandler()" value="Branch" disabled>
+		<input class="enableOnConnect" type="button" onclick="requestCommit()" value="Commit" disabled>
 		<br>
-		<input type="button" onclick="autoCommit()" value="autoCommit">
+		<input class="enableOnConnect" type="button" onclick="autoCommit()" value="autoCommit" disabled>
 	</form>
 
 	<textarea name="serverLog" id="serverLog" cols="60" rows="20"></textarea>
