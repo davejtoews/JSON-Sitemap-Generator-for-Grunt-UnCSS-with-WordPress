@@ -55,6 +55,12 @@ function markup_differ_admin_page() {
 		<label for="serverUrl">Server Url</label>
 		<input type="text" id="serverUrl" name="serverUrl">
 		<br>
+		<label for="htaUser">htaccess User</label>
+		<input type="text" id="htaUser" name="htaUser">
+		<br>
+		<label for="htaPass">htacces Pass</label>
+		<input type="text" id="htaPass" name="htaPass">
+		<br>
 		<label for="muPath">Markup Path</label>
 		<input type="text" id="muPath" name="muPath" disabled>
 		<br>
@@ -67,6 +73,8 @@ function markup_differ_admin_page() {
 		<input class="enableOnConnect" type="button" onclick="requestCommit()" value="Commit" disabled>
 		<br>
 		<input class="enableOnConnect" type="button" onclick="autoCommit()" value="autoCommit" disabled>
+		<br>
+		<input type="button" onclick="getTest()" value="Test">
 	</form>
 
 	<textarea name="serverLog" id="serverLog" cols="60" rows="20"></textarea>
