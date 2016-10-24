@@ -223,28 +223,6 @@ function getPluginList() {
 	return plugins;
 }
 
-function getTest() {
-	(function($) {
-		var server = $('#serverUrl').val() + '/test';
-		var htaUser = $('#htaUser').val();
-		var htaPass = $('#htaPass').val();
-		var path = $('#muPath').val();
-		var data = {
-			'path' : path
-		}
-		serverLog("Testing...");	
-		$.ajax({
-		  type: "POST",
-		  url: server,
-		  data: data,
-		  success: function(resonse) {
-		  	console.log(response);
-		  }
-		});		
-	})(jQuery);	
-}
-
-
 
 
 
