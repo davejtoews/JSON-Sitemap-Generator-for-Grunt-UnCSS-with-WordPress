@@ -207,7 +207,9 @@ function getBranchName(pluginPath) {
 
 function serverLog(newItem, newLine = "\n") {
 	(function($) {
-		var log = $('#serverLog').val() + newItem + newLine;
+		var currentDate = new Date();
+		var currentTime = currentDate.getHours() + ":" + currentDate.getMinutes();
+		var log = $('#serverLog').val() + currentTime + ' - ' + newItem + newLine;
 		$('#serverLog').val(log);
 		$('#serverLog').scrollTop($('#serverLog')[0].scrollHeight);
 	})(jQuery);
